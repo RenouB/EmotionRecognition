@@ -36,9 +36,9 @@ def get_deltas(features):
 	concatenated = np.concatenate([features, deltas, delta_deltas], axis=1)
 	return concatenated
 
-# with open(os.path.join(DATA_DIR, 'train.json')) as f:
-# 	train = json.load(f)
-# print('train loaded')
+with open(os.path.join(DATA_DIR, 'train.json')) as f:
+	train = json.load(f)
+print('train loaded')
 
 with open(os.path.join(DATA_DIR, 'dev.json')) as f:
 	dev = json.load(f)
@@ -49,7 +49,7 @@ train_non_padded = []
 for datapoint in train:
 	features = train[datapoint]['features']
 	train_non_padded.append(get_deltas(features))
-	print(train_array[-1].shape)
+	print(train_non_padded[-1].shape)
 
 dev_non_padded = []
 
@@ -57,23 +57,24 @@ for datapoint in dev:
 	features = dev[datapoint]['features']
 	dev_non_padded.append(get_deltas(features))
 	
-max_length = max([len(datapoint) for datapoint in train_non_padded + dev_non_padded])
+max_train_length = max([len(datapoint) for datapoint in train_non_padded])
+max_dev_length = max([len(datapoint) for datapoint in dev_non_padded])
 
 dev_padded = []
 for datapoint in dev_non_padded:
-	padded_datapoint = np.zeros(shape=(max_length, dev_non_padded[0].shape[1]))
+	padded_datapoint = np.zeros(shape=(max_train_length, dev_non_padded[0].shape[1]))
 	padded_datapoint[:datapoint.shape[0], :datapoint.shape[1]] = datapoint
 	dev_padded.append(np.expand_dims(padded_datapoint, axis=2))
 dev_padded = np.concatenate(dev_padded, axis=2)
 
 train_padded = []
 for datapoint in train_non_padded:
-	padded_datapoint = np.zeros(shape=(max_length, dev_non_padded[0].shape[1]))
+	padded_datapoint = np.zeros(shape=(max_dev_length, dev_non_padded[0].shape[1]))
 	padded_datapoint[:datapoint.shape[0], :datapoint.shape[1]] = datapoint
 	train_padded.append(np.expand_dims(padded_datapoint, axis=2))
 train_padded = np.concatenate(train_padded, axis=2)
 
-np.save('data/train.npy', train_padded)
-np.save('data/dev.npy', dev_padded)
+np.save('data/train.npy', train_padded, allow_pickle=True)
+np.save('data/dev.npy', dev_padded, allow_pickle=True)
 
 	
